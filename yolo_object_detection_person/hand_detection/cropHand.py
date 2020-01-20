@@ -78,6 +78,8 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
 
         cv2_window_setting("Person_Hand_Frame : " + str(frame_count), 440, 380, 700, 450, img_for_drawing[:, :, ::-1])
 
+        cv2.waitKey(0)
+
     if len(hand_List) == 0:
         cv2.destroyWindow("Person_Hand_Frame : "+ str(frame_count))
         cv2.destroyWindow("Hand_Crop_Frame : "+ str(frame_count))
@@ -85,6 +87,9 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
         white_img_2 = np.full((440, 380), 255)
         cv2_window_setting("Person_Hand_Frame : "+ str(frame_count), 440, 380, 700, 450, white_img_2)
         cv2_window_setting("Hand_Crop_Frame : "+ str(frame_count), 320, 240, 1200, 550, white_img_1)
+
+        cv2.waitKey(0)
+
 
     return hand_List
 

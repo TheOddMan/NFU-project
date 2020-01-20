@@ -27,26 +27,44 @@ def FaceRecognize(FaceModel,net,image,frame_count,confidenceV=0.5):
     face = ['10761116','10861121','40441125','40441141','40441144']
 
     (h, w) = image.shape[:2]
-    print(h)
-    print(w)
+
     blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 1.0,
                                  (300, 300), (104.0, 177.0, 123.0))
     net.setInput(blob)
     detections = net.forward()
 
     studentID_List = []
-    for i in range(0, detections.shape[2]):
-        confidence = detections[0, 0, i, 2]
+
+
+    #偵測到的人臉會很多，所以只挑選信心分數前三高的索引
+    if detections.shape[2] < 3:
+        pass
+    else:
+        detections_confidences_top3 = detections[:,:,:,2].argsort()[:,:,-3:][:,:,::-1].ravel()
+        detections_top3 = detections[:,:,detections_confidences_top3,:]
+    #
+
+
+    Largest_FaceArea = 0
+
+    for i in range(0, detections_top3.shape[2]):
+        confidence = detections_top3[0, 0, i, 2]
         if confidence < confidenceV:
             continue
-        box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+        box = detections_top3[0, 0, i, 3:7] * np.array([w, h, w, h])
         (startX, startY, endX, endY) = box.astype("int")
 
+        area_of_Face = (endX-startX) * (endY - startY)
+
+        if area_of_Face > Largest_FaceArea:
+            Largest_FaceArea = area_of_Face
+        else:
+            continue
 
         crop_img = image[startY:endY, startX:endX]  #從學生區塊裁切臉部區塊
 
         crop_img_for_drawing = crop_img.copy()
-        
+
         cv2_window_setting("Face_Crop : " + str(frame_count), 440, 380, 1200, 30, crop_img_for_drawing)
 
         crop_img = cv2.resize(crop_img, dsize=(48, 48))

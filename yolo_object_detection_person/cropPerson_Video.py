@@ -121,9 +121,9 @@ def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,mo
 
 
 #將完整圖片進行切除臉、手的部分
-def cropImage(image,LABELS,idxs,boxes,confidences,classIDs):
+def cropImage(image,LABELS,idxs,boxes,confidences,classIDs,frame_count):
 
-    image_or = image
+    image_or = image.copy()
     # 若有任何物件在此張圖片內
     if len(idxs) > 0:
         # 迭代所有物件
@@ -137,11 +137,15 @@ def cropImage(image,LABELS,idxs,boxes,confidences,classIDs):
           (w, h) = (boxes[i][2], boxes[i][3])
           # 畫人物框
 
+          cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 255, 2.5), 2)
+          # cv2.putText(image, "Frame : "+str(frame_count), (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 255), 3)
+          cv2_window_setting("Frame : "+str(frame_count), 640, 480, 40, 30, image)
+          cv2.waitKey(0)
 
           ###                                                                   臉部偵測                                                                  ###
           # 切割人物的部分(色彩為BGR)，此圖會送入臉部偵測
           crop_img_to_faceDetect = image_or[y:y + h, x:x + w]
-          studentID = FaceRecognize(face_rec_model, face_det_model, crop_img_to_faceDetect)
+          studentID = FaceRecognize(face_rec_model, face_det_model, crop_img_to_faceDetect,frame_count=frame_count)
           print("學號 : ",studentID)
           ###                                                                   臉部偵測                                                                  ###
 
@@ -151,25 +155,32 @@ def cropImage(image,LABELS,idxs,boxes,confidences,classIDs):
           # 將切割人物的部分(色彩為RGB)轉換成PIL圖片格式，此圖會送入手部偵測(因手部偵測需要PIL格式)
           crop_img_PIL_to_hand_Detect = Image.fromarray(crop_img_array_to_handDetect, 'RGB')
 
-          hands = detect_img(hand_det_model, crop_img_PIL_to_hand_Detect,crop_img_to_faceDetect,hand_rec_model)  #crop_img_to_faceDetect為了使手部框與臉部框畫在同一張影像
+          hands = detect_img(hand_det_model, crop_img_PIL_to_hand_Detect,crop_img_to_faceDetect,hand_rec_model,frame_count=frame_count)  #crop_img_to_faceDetect為了使手部框與臉部框畫在同一張影像
           print("手 : ",hands)
          ###                                                                   手部偵測                                                                  ###
 
-          cv2_window_setting("overall",640,480,40,30,image)
-          cv2.waitKey(0)
+     cv2.destroyAllWindows()
+
+
+
 
 
 print("[INFO] starting video stream...")
 vc = cv2.VideoCapture("test_video.mp4")
+frame_count = 1
 while (vc.isOpened()):
+
     ret, frame = vc.read()
     if frame is None:
         break
+
     (H, W) = frame.shape[:2]
     layerOutputs = detectPerson(frame, person_model)
 
     idxs, boxes, confidences, classIDs = nmsPerson(layerOutputs, __confidence, __threshold,H,W)
 
-    cropImage(frame, LABELS, idxs, boxes, confidences, classIDs)
+    cropImage(frame, LABELS, idxs, boxes, confidences, classIDs,frame_count)
+
+    frame_count +=1
 
 

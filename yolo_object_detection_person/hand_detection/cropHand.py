@@ -41,7 +41,7 @@ def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,mo
     except:
         pass
 
-def detect_img(yolo,img,origin_person_img,hand_rec_model):
+def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
 
     img_for_drawing = img.copy()
 
@@ -68,7 +68,7 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model):
 
         imageHand_display = np.array(imageHand)
 
-        cv2_window_setting("Hand_crop", 320, 240, 1200, 550, imageHand_display[:, :, ::-1])
+        cv2_window_setting("Hand_Crop_Frame : " + str(frame_count), 320, 240, 1200, 550, imageHand_display[:, :, ::-1])
 
         handResult = recHand(imageHand,hand_rec_model)
 
@@ -76,15 +76,15 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model):
 
         cv2.putText(img_for_drawing, handResult, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
 
-        cv2_window_setting("Person_Hand", 440, 380, 700, 450, img_for_drawing[:, :, ::-1])
+        cv2_window_setting("Person_Hand_Frame : " + str(frame_count), 440, 380, 700, 450, img_for_drawing[:, :, ::-1])
 
     if len(hand_List) == 0:
-        cv2.destroyWindow("Person_Hand")
-        cv2.destroyWindow("Hand_crop")
+        cv2.destroyWindow("Person_Hand_Frame : "+ str(frame_count))
+        cv2.destroyWindow("Hand_Crop_Frame : "+ str(frame_count))
         white_img_1 = np.full((320, 240), 255)
         white_img_2 = np.full((440, 380), 255)
-        cv2_window_setting("Person_Hand", 440, 380, 700, 450, white_img_2)
-        cv2_window_setting("Hand_crop", 320, 240, 1200, 550, white_img_1)
+        cv2_window_setting("Person_Hand_Frame : "+ str(frame_count), 440, 380, 700, 450, white_img_2)
+        cv2_window_setting("Hand_Crop_Frame : "+ str(frame_count), 320, 240, 1200, 550, white_img_1)
 
     return hand_List
 

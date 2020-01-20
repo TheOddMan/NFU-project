@@ -31,13 +31,24 @@ def recHand(imageHand,hand_rec_model):
     except:
         print("An exception occurred")
 
+def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,moveWindow_y,imshow):
+
+    try:
+        cv2.namedWindow(namedWindow, 0)
+        cv2.resizeWindow(namedWindow, resizeWindow_h, resizeWindow_w)
+        cv2.moveWindow(namedWindow, moveWindow_x, moveWindow_y)
+        cv2.imshow(namedWindow, imshow)
+    except:
+        pass
 
 def detect_img(yolo,img,origin_person_img,hand_rec_model):
 
-    img_or = img.copy()
+    img_for_drawing = img.copy()
+
+    img_for_drawing = np.array(img_for_drawing)
+
     r_image,out_boxes = yolo.detect_image(img)
 
-    r_image_array = np.array(r_image)
     out_boxes = np.round(out_boxes).astype("int")
 
     hand_List = []
@@ -48,18 +59,32 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model):
         w = box[3]-box[1]
         y = box[0]-80
         x = box[1]
-        imagePerson = np.array(img_or)
+
+        imagePerson = np.array(img) #imagePerson : RGB (PIL)
+
         hand_List.append("hand")
+
         imageHand = imagePerson[y:y + h, x:x + w] #PIL image
+
+        imageHand_display = np.array(imageHand)
+
+        cv2_window_setting("Hand_crop", 320, 240, 1200, 550, imageHand_display[:, :, ::-1])
+
         handResult = recHand(imageHand,hand_rec_model)
-        # displayImage(r_image_array,imageHand)
 
-        cv2.rectangle(origin_person_img, (x, y), (x + w, y + h), (0, 255, 0, 2), 2)
-        # key = cv2.waitKey(1) & 0xFF
-        # cv2.imshow("Image", imagePerson)
-        cv2.putText(origin_person_img, handResult, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+        cv2.rectangle(img_for_drawing, (x, y), (x + w, y + h), (0, 255, 0, 2), 2)
 
+        cv2.putText(img_for_drawing, handResult, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
 
+        cv2_window_setting("Person_Hand", 440, 380, 700, 450, img_for_drawing[:, :, ::-1])
+
+    if len(hand_List) == 0:
+        cv2.destroyWindow("Person_Hand")
+        cv2.destroyWindow("Hand_crop")
+        white_img_1 = np.full((320, 240), 255)
+        white_img_2 = np.full((440, 380), 255)
+        cv2_window_setting("Person_Hand", 440, 380, 700, 450, white_img_2)
+        cv2_window_setting("Hand_crop", 320, 240, 1200, 550, white_img_1)
 
     return hand_List
 

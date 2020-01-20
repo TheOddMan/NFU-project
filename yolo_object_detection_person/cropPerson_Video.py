@@ -86,15 +86,15 @@ __image = "images/000000000113.jpg"
 
 #hand model
 hand_detect_model_path = "hand_detection/ep081-loss10.058-val_loss12.472.h5"
-hand_model = load_handyolo(hand_detect_model_path)
-hand_rec_model_path = load_model('hand_detection/BestM.hdf5')
+hand_det_model = load_handyolo(hand_detect_model_path)
+hand_rec_model = load_model('hand_detection/BestM.hdf5')
 #
 
 #face_model
 face_proto_path = "face_detection/deploy.prototxt.txt"
 face_detect_model_path = "face_detection/face.caffemodel"
-face_rec_model_path = load_model("face_detection/M_final.hdf5")
-face_model = load_faceyolo(face_proto_path, face_detect_model_path)
+face_rec_model = load_model("face_detection/M_final.hdf5")
+face_det_model = load_faceyolo(face_proto_path, face_detect_model_path)
 #
 
 #person model
@@ -110,11 +110,20 @@ LABELS = open(person_namefile_path).read().strip().split("\n")
 person_model = load_personyolo(person_cfg_path, person_weight_path)
 
 
+def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,moveWindow_y,imshow):
+    try:
+        cv2.namedWindow(namedWindow, 0)
+        cv2.resizeWindow(namedWindow, resizeWindow_h, resizeWindow_w)
+        cv2.moveWindow(namedWindow, moveWindow_x, moveWindow_y)
+        cv2.imshow(namedWindow, imshow)
+    except:
+        pass
+
+
 #將完整圖片進行切除臉、手的部分
 def cropImage(image,LABELS,idxs,boxes,confidences,classIDs):
 
     image_or = image
-    # image_or = cv2.resize(image_or,(416,416))
     # 若有任何物件在此張圖片內
     if len(idxs) > 0:
         # 迭代所有物件
@@ -122,55 +131,41 @@ def cropImage(image,LABELS,idxs,boxes,confidences,classIDs):
          # 只挑出人物偵測
           if classIDs[i] != 0:
            continue
-          print(boxes[i][0],boxes[i][1])
-          print(boxes[i][2], boxes[i][3])
-          print("=====")
           # 人物框座標
           (x,y) = (boxes[i][0], boxes[i][1])
           # 人物框長寬
           (w, h) = (boxes[i][2], boxes[i][3])
-          # x = abs(x)
-          # y = abs(y)
           # 畫人物框
-          # image = cv2.resize(image, (416, 416))
-          # cv2.rectangle(image, (x, y), (x + w, y + h), [0,0,255], 2)
 
-          # cv2.waitKey(0)
+
           ###                                                                   臉部偵測                                                                  ###
           # 切割人物的部分(色彩為BGR)，此圖會送入臉部偵測
-          crop_img_array_to_faceDetect = image_or[y:y + h, x:x + w]
-          studentID = FaceRecognize(face_rec_model_path, face_model, crop_img_array_to_faceDetect)
+          crop_img_to_faceDetect = image_or[y:y + h, x:x + w]
+          studentID = FaceRecognize(face_rec_model, face_det_model, crop_img_to_faceDetect)
           print("學號 : ",studentID)
           ###                                                                   臉部偵測                                                                  ###
 
           ###                                                                   手部偵測                                                                  ###
           # 將切割人物的部分作色彩轉換(色彩為RGB)，此圖會送入手部偵測(因手部偵測需要RGB)
-          crop_img_array_to_handDetect = crop_img_array_to_faceDetect[:, :, ::-1]
+          crop_img_array_to_handDetect = crop_img_to_faceDetect[:, :, ::-1]
           # 將切割人物的部分(色彩為RGB)轉換成PIL圖片格式，此圖會送入手部偵測(因手部偵測需要PIL格式)
           crop_img_PIL_to_hand_Detect = Image.fromarray(crop_img_array_to_handDetect, 'RGB')
 
-          hands = detect_img(hand_model, crop_img_PIL_to_hand_Detect,crop_img_array_to_faceDetect,hand_rec_model_path)  #crop_img_array_to_faceDetect為了使手部框與臉部框畫在同一張影像
+          hands = detect_img(hand_det_model, crop_img_PIL_to_hand_Detect,crop_img_to_faceDetect,hand_rec_model)  #crop_img_to_faceDetect為了使手部框與臉部框畫在同一張影像
           print("手 : ",hands)
          ###                                                                   手部偵測                                                                  ###
-          key = cv2.waitKey(1) & 0xFF
-          cv2.imshow("Image", image)
 
+          cv2_window_setting("overall",640,480,40,30,image)
+          cv2.waitKey(0)
 
-
-
-
-          # text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
-          # cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, [0,0,255], 2)
 
 print("[INFO] starting video stream...")
 vc = cv2.VideoCapture("test_video.mp4")
 while (vc.isOpened()):
     ret, frame = vc.read()
-    # frame_or = frame
     if frame is None:
         break
     (H, W) = frame.shape[:2]
-    # print(type(frame))
     layerOutputs = detectPerson(frame, person_model)
 
     idxs, boxes, confidences, classIDs = nmsPerson(layerOutputs, __confidence, __threshold,H,W)
@@ -178,7 +173,3 @@ while (vc.isOpened()):
     cropImage(frame, LABELS, idxs, boxes, confidences, classIDs)
 
 
-# cropImage(image,LABELS,idxs,boxes,confidences,classIDs)
-
-# cv2.imshow("Image", image)
-# cv2.waitKey(0)

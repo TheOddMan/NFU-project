@@ -25,7 +25,7 @@ def recHand(imageHand,hand_rec_model):
         im_hand_gray_resize = im_hand_gray_resize.reshape(1, im_hand_gray_resize.shape[0], im_hand_gray_resize.shape[1],
                                                           1)
         results = hand_rec_model.predict_classes(im_hand_gray_resize)
-        print("Hand Result : ", hand_gesture[results[0]])
+        print("手勢 : ", hand_gesture[results[0]])
 
         return hand_gesture[results[0]]
     except:
@@ -81,6 +81,7 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
         cv2.waitKey(0)
 
     if len(hand_List) == 0:
+        print("未偵測到手勢")
         cv2.destroyWindow("Person_Hand_Frame : "+ str(frame_count))
         cv2.destroyWindow("Hand_Crop_Frame : "+ str(frame_count))
         white_img_1 = np.full((320, 240), 255)
@@ -89,6 +90,8 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
         cv2_window_setting("Hand_Crop_Frame : "+ str(frame_count), 320, 240, 1200, 550, white_img_1)
 
         cv2.waitKey(0)
+
+
 
 
     return hand_List

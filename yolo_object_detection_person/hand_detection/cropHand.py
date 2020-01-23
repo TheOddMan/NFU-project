@@ -31,6 +31,8 @@ def recHand(imageHand,hand_rec_model):
     except:
         print("An exception occurred")
 
+
+
 def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,moveWindow_y,imshow):
 
     try:
@@ -41,7 +43,7 @@ def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,mo
     except:
         pass
 
-def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
+def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count,showImage):
 
     img_for_drawing = img.copy()
 
@@ -55,12 +57,27 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
 
 
     for box in out_boxes:
-        h = box[2]-box[0]+50
+        h = box[2]-box[0]
         w = box[3]-box[1]
-        y = box[0]-80
+        y = box[0]
         x = box[1]
 
+        h = int(h + h * 0.35)
+        y = int(y - y * 0.4)
+        w = int(w + w * 0.3)
+        x = int(x - x * 0.05)
+
+        if h < 0:
+            h = 0
+        if w < 0:
+            w = 0
+        if y < 0:
+            y = 0
+        if x < 0:
+            x = 0
+
         imagePerson = np.array(img) #imagePerson : RGB (PIL)
+
 
         hand_List.append("hand")
 
@@ -68,7 +85,10 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
 
         imageHand_display = np.array(imageHand)
 
-        cv2_window_setting("Hand_Crop_Frame : " + str(frame_count), 320, 240, 1200, 550, imageHand_display[:, :, ::-1])
+
+
+        if showImage:
+            cv2_window_setting("Hand_Crop_Frame : " + str(frame_count), 320, 240, 1200, 550, imageHand_display[:, :, ::-1])
 
         handResult = recHand(imageHand,hand_rec_model)
 
@@ -76,20 +96,21 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count):
 
         cv2.putText(img_for_drawing, handResult, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
 
-        cv2_window_setting("Person_Hand_Frame : " + str(frame_count), 440, 380, 700, 450, img_for_drawing[:, :, ::-1])
-
-        cv2.waitKey(0)
+        if showImage:
+            cv2_window_setting("Person_Hand_Frame : " + str(frame_count), 440, 380, 700, 450, img_for_drawing[:, :, ::-1])
+            cv2.waitKey(0)
 
     if len(hand_List) == 0:
         print("未偵測到手勢")
-        cv2.destroyWindow("Person_Hand_Frame : "+ str(frame_count))
-        cv2.destroyWindow("Hand_Crop_Frame : "+ str(frame_count))
-        white_img_1 = np.full((320, 240), 255)
-        white_img_2 = np.full((440, 380), 255)
-        cv2_window_setting("Person_Hand_Frame : "+ str(frame_count), 440, 380, 700, 450, white_img_2)
-        cv2_window_setting("Hand_Crop_Frame : "+ str(frame_count), 320, 240, 1200, 550, white_img_1)
 
-        cv2.waitKey(0)
+        if showImage:
+            cv2.destroyWindow("Person_Hand_Frame : "+ str(frame_count))
+            cv2.destroyWindow("Hand_Crop_Frame : "+ str(frame_count))
+            white_img_1 = np.full((320, 240), 255)
+            white_img_2 = np.full((440, 380), 255)
+            cv2_window_setting("Person_Hand_Frame : "+ str(frame_count), 440, 380, 700, 450, white_img_2)
+            cv2_window_setting("Hand_Crop_Frame : "+ str(frame_count), 320, 240, 1200, 550, white_img_1)
+            cv2.waitKey(0)
 
 
 

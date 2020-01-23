@@ -84,30 +84,8 @@ def nmsPerson(layerOutputs,__confidence,__threshold,H,W):
 
 __image = "images/000000000113.jpg"
 
-#hand model
-hand_detect_model_path = "hand_detection/ep081-loss10.058-val_loss12.472.h5"
-hand_det_model = load_handyolo(hand_detect_model_path)
-hand_rec_model = load_model('hand_detection/BestM.hdf5')
-#
 
-#face_model
-face_proto_path = "face_detection/deploy.prototxt.txt"
-face_detect_model_path = "face_detection/face.caffemodel"
-face_rec_model = load_model("face_detection/M_0989.hdf5")
-face_det_model = load_faceyolo(face_proto_path, face_detect_model_path)
-#
 
-#person model
-person_namefile_path = "yolo-coco/coco_person.names"
-person_weight_path = "yolo-coco/yolov3.weights"
-person_cfg_path = "yolo-coco/yolov3.cfg"
-__confidence = 0.5
-__threshold = 0.3
-LABELS = open(person_namefile_path).read().strip().split("\n")
-#
-
-#載入人偵測模型
-person_model = load_personyolo(person_cfg_path, person_weight_path)
 
 
 def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,moveWindow_y,imshow):
@@ -124,27 +102,30 @@ def cv2_window_setting(namedWindow,resizeWindow_h,resizeWindow_w,moveWindow_x,mo
 def cropImage(image,idxs,boxes,classIDs,frame_count):
 
     image_or = image.copy()
+
     # 若有任何物件在此張圖片內
     if len(idxs) > 0:
         # 迭代所有物件
      for i in idxs.flatten():
          # 只挑出人物偵測
-          if classIDs[i] != 0:
+          if classIDs[i] != 0: #非人物物件就跳過
            continue
+
           # 人物框座標
           (x,y) = (boxes[i][0], boxes[i][1])
           # 人物框長寬
           (w, h) = (boxes[i][2], boxes[i][3])
-          # 畫人物框
 
-          cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 255, 2.5), 2)
-          cv2_window_setting("Frame : "+str(frame_count), 640, 480, 40, 30, image)
-          cv2.waitKey(0)
+          # 畫人物框
+          if showImage:
+              cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 255, 2.5), 2)
+              cv2_window_setting("Frame : "+str(frame_count), 640, 480, 40, 30, image)
+              cv2.waitKey(0)
 
           ###                                                                   臉部偵測                                                                  ###
           # 切割人物的部分(色彩為BGR)，此圖會送入臉部偵測
           crop_img_to_faceDetect = image_or[y:y + h, x:x + w]
-          studentID = FaceRecognize(face_rec_model, face_det_model, crop_img_to_faceDetect,frame_count=frame_count)
+          studentID = FaceRecognize(face_rec_model, face_det_model, crop_img_to_faceDetect,frame_count=frame_count,showImage=showImage)
           print("學號 : ",studentID)
           ###                                                                   臉部偵測                                                                  ###
 
@@ -153,16 +134,42 @@ def cropImage(image,idxs,boxes,classIDs,frame_count):
           crop_img_array_to_handDetect = crop_img_to_faceDetect[:, :, ::-1]
           # 將切割人物的部分(色彩為RGB)轉換成PIL圖片格式，此圖會送入手部偵測(因手部偵測需要PIL格式)
           crop_img_PIL_to_hand_Detect = Image.fromarray(crop_img_array_to_handDetect, 'RGB')
-
-          detect_img(hand_det_model, crop_img_PIL_to_hand_Detect,crop_img_to_faceDetect,hand_rec_model,frame_count=frame_count)  #crop_img_to_faceDetect為了使手部框與臉部框畫在同一張影像
+          detect_img(hand_det_model, crop_img_PIL_to_hand_Detect,crop_img_to_faceDetect,hand_rec_model,frame_count=frame_count,showImage=showImage)  #crop_img_to_faceDetect為了使手部框與臉部框畫在同一張影像
           print("*"*60)
           print("*"*60)
          ###                                                                   手部偵測                                                                  ###
 
-     cv2.destroyAllWindows()
+     if showImage:
+        cv2.destroyAllWindows()
 
 
+#person model
+person_namefile_path = "yolo-coco/coco_person.names"
+person_weight_path = "yolo-coco/yolov3.weights"
+person_cfg_path = "yolo-coco/yolov3.cfg"
+__confidence = 0.5
+__threshold = 0.3
+LABELS = open(person_namefile_path).read().strip().split("\n")
+#載入人偵測模型
+person_model = load_personyolo(person_cfg_path, person_weight_path)
+#
 
+#hand model
+hand_detect_model_path = "hand_detection/ep081-loss10.058-val_loss12.472.h5"
+hand_det_model = load_handyolo(hand_detect_model_path)
+hand_rec_model = load_model('hand_detection/BestM.hdf5')
+#
+
+#face_model
+face_proto_path = "face_detection/deploy.prototxt.txt"
+face_detect_model_path = "face_detection/face.caffemodel"
+face_rec_model = load_model("face_detection/M_0989.hdf5")
+face_det_model = load_faceyolo(face_proto_path, face_detect_model_path)
+#
+
+
+#Debug參數
+showImage = True #顯示每一楨影像並暫停
 
 
 print("[INFO] starting video stream...")
@@ -171,10 +178,12 @@ frame_count = 1
 while (vc.isOpened()):
 
     ret, frame = vc.read()
+
     if frame is None:
         break
 
     (H, W) = frame.shape[:2]
+
     layerOutputs = detectPerson(frame, person_model)
 
     idxs, boxes, confidences, classIDs = nmsPerson(layerOutputs, __confidence, __threshold,H,W)

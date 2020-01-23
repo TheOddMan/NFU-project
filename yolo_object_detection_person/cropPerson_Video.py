@@ -93,7 +93,7 @@ hand_rec_model = load_model('hand_detection/BestM.hdf5')
 #face_model
 face_proto_path = "face_detection/deploy.prototxt.txt"
 face_detect_model_path = "face_detection/face.caffemodel"
-face_rec_model = load_model("face_detection/M_final.hdf5")
+face_rec_model = load_model("face_detection/M_0989.hdf5")
 face_det_model = load_faceyolo(face_proto_path, face_detect_model_path)
 #
 

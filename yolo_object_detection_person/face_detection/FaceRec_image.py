@@ -68,14 +68,13 @@ def FaceRecognize(FaceModel,net,image,frame_count,confidenceV=0.5):
         cv2_window_setting("Face_Crop : " + str(frame_count), 440, 380, 1200, 30, crop_img_for_drawing)
 
         crop_img = cv2.resize(crop_img, dsize=(48, 48))
+        crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_RGB2GRAY)
+
+        crop_img_gray = crop_img_gray.reshape(1, crop_img_gray.shape[0], crop_img_gray.shape[1], 1)
 
 
 
-        crop_img = crop_img.reshape(1, crop_img.shape[0], crop_img.shape[1], crop_img.shape[2])
-
-
-
-        r = FaceModel.predict_classes(crop_img)
+        r = FaceModel.predict_classes(crop_img_gray)
 
         studentID = face[r[0]]
         studentID_List.append(studentID)
@@ -97,7 +96,7 @@ def FaceRecognize(FaceModel,net,image,frame_count,confidenceV=0.5):
 
 
 if __name__ == '__main__':
-    FaceModel = load_model("M_final.hdf5")
+    FaceModel = load_model("M_0989.hdf5")
 
 
     FaceRecognize(FaceModel=FaceModel,fileName="000000000113.jpg")

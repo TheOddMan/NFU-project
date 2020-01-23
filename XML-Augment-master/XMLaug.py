@@ -10,82 +10,6 @@ from imgaug import augmenters as iaa
 
 ia.seed(1)
 
-def read_xml_annotation(root, image_id):
-    in_file = open(os.path.join(root, image_id))
-    tree = ET.parse(in_file)
-    root = tree.getroot()
-    bndboxlist = []
-
-    for object in root.findall('object'):  # 找到root节点下的所有country节点
-        bndbox = object.find('bndbox')  # 子节点下节点rank的值
-
-        xmin = int(float(bndbox.find('xmin').text))
-        xmax = int(float(bndbox.find('xmax').text))
-        ymin = int(float(bndbox.find('ymin').text))
-        ymax = int(float(bndbox.find('ymax').text))
-        # print(xmin,ymin,xmax,ymax)
-        bndboxlist.append([xmin,ymin,xmax,ymax])
-        # print(bndboxlist)
-
-    bndbox = root.find('object').find('bndbox')
-    return bndboxlist
-# (506.0000, 330.0000, 528.0000, 348.0000) -> (520.4747, 381.5080, 540.5596, 398.6603)
-def change_xml_annotation(root, image_id, new_target):
-    new_xmin = new_target[0]
-    new_ymin = new_target[1]
-    new_xmax = new_target[2]
-    new_ymax = new_target[3]
-
-    in_file = open(os.path.join(root, str(image_id) + '.xml'))  # 这里root分别由两个意思
-    tree = ET.parse(in_file)
-    xmlroot = tree.getroot()
-    object = xmlroot.find('object')
-    bndbox = object.find('bndbox')
-    xmin = bndbox.find('xmin')
-    xmin.text = str(new_xmin)
-    ymin = bndbox.find('ymin')
-    ymin.text = str(new_ymin)
-    xmax = bndbox.find('xmax')
-    xmax.text = str(new_xmax)
-    ymax = bndbox.find('ymax')
-    ymax.text = str(new_ymax)
-    tree.write(os.path.join(root, str(image_id) + "_aug" + '.xml'))
-
-def change_xml_list_annotation(root, image_id, new_target,saveroot,id,new_filename):
-
-    in_file = open(os.path.join(root, str(image_id) + '.xml'))  # 这里root分别由两个意思
-    tree = ET.parse(in_file)
-    xmlroot = tree.getroot()
-    index = 0
-    filename = xmlroot.find("filename")
-    filename.text = new_filename
-    for object in xmlroot.findall('object'):  # 找到root节点下的所有country节点
-        bndbox = object.find('bndbox')  # 子节点下节点rank的值
-
-        # xmin = int(bndbox.find('xmin').text)
-        # xmax = int(bndbox.find('xmax').text)
-        # ymin = int(bndbox.find('ymin').text)
-        # ymax = int(bndbox.find('ymax').text)
-
-        new_xmin = new_target[index][0]
-        new_ymin = new_target[index][1]
-        new_xmax = new_target[index][2]
-        new_ymax = new_target[index][3]
-
-        xmin = bndbox.find('xmin')
-        xmin.text = str(new_xmin)
-        ymin = bndbox.find('ymin')
-        ymin.text = str(new_ymin)
-        xmax = bndbox.find('xmax')
-        xmax.text = str(new_xmax)
-        ymax = bndbox.find('ymax')
-        ymax.text = str(new_ymax)
-
-        index = index + 1
-
-    tree.write(os.path.join(saveroot, str(image_id) + "_aug_" + str(id) + '.xml'))
-
-
 def mkdir(path):
 
     # 去除首位空格
@@ -110,76 +34,40 @@ def mkdir(path):
 
 if __name__ == "__main__":
 
-    IMG_DIR = "Images/train2017"
-    XML_DIR = "Annotations/coco_Annotation"
+    IMG_DIR = "D:\\XinYu\\NFU\\Face\\data\\40441144"
 
-    AUG_XML_DIR = "AUG_XML/coco_Annotation" # 存储增强后的XML文件夹路径
-    mkdir(AUG_XML_DIR)
-
-    AUG_IMG_DIR = "AUG_IMG/coco_lighting" # 存储增强后的影像文件夹路径
+    AUG_IMG_DIR = "Face_AUG" # 存储增强后的影像文件夹路径
     mkdir(AUG_IMG_DIR)
 
-    AUGLOOP = 1 # 每张影像增强的数量
-
-    boxes_img_aug_list = []
-    new_bndbox = []
-    new_bndbox_list = []
+    AUGLOOP = 5 # 每张影像增强的数量
 
 
-    # 影像增强
-    # seq = iaa.Sequential([
-    #     iaa.Flipud(0.5),  # vertically flip 20% of all images
-    #     iaa.Fliplr(0.5),  # 镜像
-    #     iaa.Multiply((1.2, 1.5)),  # change brightness, doesn't affect BBs
-    #     iaa.GaussianBlur(sigma=(0, 3.0)), # iaa.GaussianBlur(0.5),
-    #     iaa.Affine(
-    #         translate_px={"x": 15, "y": 15},
-    #         scale=(0.8, 0.95),
-    #         rotate=(-30, 30)
-    #     )  # translate by 40/60px on x/y axis, and scale to 50-70%, affects BBs
-    # ])
     seq = iaa.Sequential([
-        iaa.Add(-80)
+        iaa.Add([-50,-20,20,50]),
+        iaa.GaussianBlur([1.5,2,2.5]),
+        iaa.MotionBlur([7,8,9,10]),
+        iaa.Fliplr(0.5),
+        iaa.Flipud(0.5),
         ])
 
-    for root, sub_folders, files in os.walk(XML_DIR):
+    for root, sub_folders, files in os.walk(IMG_DIR):
 
         for name in files:
-
-            bndbox = read_xml_annotation(XML_DIR, name)
 
             for epoch in range(AUGLOOP):
                 seq_det = seq.to_deterministic()  # 保持坐标和图像同步改变，而不是随机
 
                 # 读取图片
                 try:
+                    print("Reading Image : ", name)
                     img = Image.open(os.path.join(IMG_DIR, name[:-4] + '.png'))
                 except:
                     img = Image.open(os.path.join(IMG_DIR, name[:-4] + '.jpg'))
                 img = np.array(img)
 
-                # bndbox 坐标增强
-                for i in range(len(bndbox)):
-                    bbs = ia.BoundingBoxesOnImage([
-                        ia.BoundingBox(x1=bndbox[i][0], y1=bndbox[i][1], x2=bndbox[i][2], y2=bndbox[i][3]),
-                    ], shape=img.shape)
-
-                    bbs_aug = seq_det.augment_bounding_boxes([bbs])[0]
-                    boxes_img_aug_list.append(bbs_aug)
-
-                    # new_bndbox_list:[[x1,y1,x2,y2],...[],[]]
-                    new_bndbox_list.append([int(bbs_aug.bounding_boxes[0].x1),
-                                            int(bbs_aug.bounding_boxes[0].y1),
-                                            int(bbs_aug.bounding_boxes[0].x2),
-                                            int(bbs_aug.bounding_boxes[0].y2)])
-                # 存储变化后的图片
                 image_aug = seq_det.augment_images([img])[0]
                 path = os.path.join(AUG_IMG_DIR, str(name[:-4]) + "_aug_" + str(epoch) + '.jpg')
-                image_auged = bbs.draw_on_image(image_aug, thickness=0)
-                Image.fromarray(image_auged).save(path)
+                Image.fromarray(image_aug).save(path)
 
-                # 存储变化后的XML
-                change_xml_list_annotation(XML_DIR, name[:-4], new_bndbox_list,AUG_XML_DIR,epoch,str(name[:-4]) + "_aug_" + str(epoch) + '.jpg')
-                print(str(name[:-4]) + "_aug_" + str(epoch) + '.jpg')
-                new_bndbox_list = []
+
 

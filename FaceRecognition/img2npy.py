@@ -9,10 +9,10 @@ Y = []
 for roots,dirs,files in sorted(os.walk("../Face/data")):
     print(roots)
     for file in files:
-        im = cv2.imread(roots + "/" + file)
+        im = cv2.imread(roots + "/" + file,cv2.IMREAD_GRAYSCALE)
         print("Read file :",file)
         imresize = cv2.resize(im.copy(), dsize=(48, 48))
-        imresize = imresize.reshape(1, imresize.shape[0], imresize.shape[1], imresize.shape[2])
+        imresize = imresize.reshape(1, imresize.shape[0], imresize.shape[1], 1)
 
         if imgData is None:
             imgData = imresize

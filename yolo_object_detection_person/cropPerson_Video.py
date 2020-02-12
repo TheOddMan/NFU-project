@@ -142,7 +142,7 @@ def cropImage(image, idxs, boxes, classIDs, frame_count, signalrHub):
                                     showImage=showImage)  # crop_img_to_faceDetect為了使手部框與臉部框畫在同一張影像
             if handResult == "": handResult = "nohand"
             print("手勢 : ", handResult)
-            print("*" * 60)
+            print("*" * 60)#
             print("*" * 60)
             ###                                                                   手部偵測                                                                  ###
 

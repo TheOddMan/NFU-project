@@ -5,6 +5,7 @@ yolo_object_detection_person : 整體系統
 <ul>
   <li>keras_yolo3_hand : 手形偵測訓練</li>
   <ul>
+    <li>mAP/ : mAP計算 <a href="https://github.com/Cartucho/mAP">參考連結</a></li>
     <li>trainingData/ : 訓練影像</li>
     <li>trainingAnnotation/ : 訓練Label(xml格式)</li>
     <li>annotationTxt/ : 訓練Label(txt格式, 用來訓練keras版yolo)</li>

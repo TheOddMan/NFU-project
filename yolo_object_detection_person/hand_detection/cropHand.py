@@ -25,7 +25,6 @@ def recHand(imageHand,hand_rec_model):
         im_hand_gray_resize = im_hand_gray_resize.reshape(1, im_hand_gray_resize.shape[0], im_hand_gray_resize.shape[1],
                                                           1)
         results = hand_rec_model.predict_classes(im_hand_gray_resize)
-        print("手勢 : ", hand_gesture[results[0]])
 
         return hand_gesture[results[0]]
     except:
@@ -54,7 +53,7 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count,showImage):
     out_boxes = np.round(out_boxes).astype("int")
 
     hand_List = []
-
+    handResult=""
 
     for box in out_boxes:
         h = box[2]-box[0]
@@ -115,7 +114,7 @@ def detect_img(yolo,img,origin_person_img,hand_rec_model,frame_count,showImage):
 
 
 
-    return hand_List
+    return handResult
 
 if __name__ == '__main__':
     from argparse import Namespace

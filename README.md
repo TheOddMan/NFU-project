@@ -3,7 +3,7 @@
 
 yolo_object_detection_person : 整體系統
 <ul>
-  <li>keras_yolo3_hand : 手形偵測訓練</li>
+  <li>keras_yolo3_hand : 手形偵測訓練 <a href="https://github.com/qqwweee/keras-yolo3">參考連結</a></li>
   <ul>
     <li>mAP/ : mAP計算 <a href="https://github.com/Cartucho/mAP">參考連結</a></li>
     <li>trainingData/ : 訓練影像</li>
@@ -28,7 +28,7 @@ yolo_object_detection_person : 整體系統
   <li>CaptureHandPackage : 擷取手形影像</li>
   <ul>
     <li>CatchPIC_fromfile.py : 從檔案讀取影片</li>
-    <li>XMLaug.py : 影像增強資料集(HandData/到HandData_aug/)
+    <li>XMLaug.py : 影像增強資料集(HandData/到HandData_aug/) <a href="https://github.com/aleju/imgaug">參考連結</a></li>
   </ul>
   <li>CaptureFacePackage : 擷取臉形影像</li>
   <ul>

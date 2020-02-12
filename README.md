@@ -1,8 +1,20 @@
 # NFU-project
 
-
-yolo_object_detection_person : 整體系統
 <ul>
+  <li>yolo_object_detection_person : 整體系統</li>
+  <ul>
+    <li>face_detection/ : 臉部辨識與偵測資料夾</li>
+    <ul>
+      <li>FaceRec_image.py : 臉部辨識與偵測檔案</li>
+    </ul>
+    <li>hand_detection/ : 手勢辨識與偵測資料夾</li>
+    <ul>
+      <li>FaceRec_image.py : 手勢辨識與偵測檔案</li>
+    </ul>
+    <li>cropPerson_Video.py : 主程式</li>
+    <li>DrawBox_testing.py : 測試畫方框</li>
+  </ul>
+  
   <li>keras_yolo3_hand : 手形偵測訓練 <a href="https://github.com/qqwweee/keras-yolo3">參考連結</a></li>
   <ul>
     <li>mAP/ : mAP計算 <a href="https://github.com/Cartucho/mAP">參考連結</a></li>

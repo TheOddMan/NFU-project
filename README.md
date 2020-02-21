@@ -52,6 +52,9 @@
   </ul>
   <p></p>
   <li>labelImg-master/ : 手動製作物件偵測labal程式 <a href="https://github.com/tzutalin/labelImg">參考連結</a></li>
+  <ul>
+    <li>screenShot.py : 從影片內擷取整張圖片</li>
+  </ul>
 </ul>
 
 
